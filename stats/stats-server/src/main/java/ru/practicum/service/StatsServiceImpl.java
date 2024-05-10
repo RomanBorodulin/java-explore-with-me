@@ -48,12 +48,14 @@ public class StatsServiceImpl implements StatsService {
             log.warn("Получен null");
             throw new ValidationException("Передан null объект");
         }
-        String regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(endpointHit.getIp());
-        if (!matcher.matches()) {
-            log.warn("Передан некорректный ip-адрес {}", endpointHit.getId());
-            throw new IllegalArgumentException("Передан некорректный ip-адрес");
+        if (endpointHit.getIp() != null) {
+            String regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(endpointHit.getIp());
+            if (!matcher.matches()) {
+                log.warn("Передан некорректный ip-адрес {}", endpointHit.getIp());
+                throw new IllegalArgumentException("Передан некорректный ip-адрес");
+            }
         }
     }
 }
