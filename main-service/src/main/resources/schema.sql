@@ -57,3 +57,9 @@ CREATE TABLE IF NOT EXISTS requests (
     CONSTRAINT fk_requests_to_event FOREIGN KEY (event_id) REFERENCES events(id),
     CONSTRAINT fk_requests_to_users FOREIGN KEY (requester_id) REFERENCES users(id)
 );
+
+CREATE INDEX idx_events_category_id ON events(category_id);
+CREATE INDEX idx_events_initiator_id ON events(initiator_id);
+CREATE INDEX idx_events_event_date ON events(event_date);
+CREATE INDEX idx_requests_event_id ON requests(event_id);
+CREATE INDEX idx_requests_requester_id ON requests(requester_id);
