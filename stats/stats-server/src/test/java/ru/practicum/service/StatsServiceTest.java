@@ -71,16 +71,6 @@ public class StatsServiceTest {
     }
 
     @Test
-    public void addEndpoint_whenEndpointIpNotValid_thenNotSavedEndpoint() {
-        EndpointHit endpointToSave = EndpointHitMapper.toEndpointHit(expectedEndpointHitDto);
-        endpointToSave.setIp("127.0.0.256");
-
-        assertThrows(IllegalArgumentException.class,
-                () -> statsService.add(EndpointHitMapper.toEndpointHitDto(endpointToSave)));
-        verify(statsRepository, never()).save(endpointToSave);
-    }
-
-    @Test
     public void getStats_whenStartIsAfterEnd_thenThrownException() {
         assertThrows(ValidationException.class,
                 () -> statsService.getStats(LocalDateTime.MAX, LocalDateTime.MIN, null, false));

@@ -12,8 +12,6 @@ import ru.practicum.repository.StatsRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -47,15 +45,6 @@ public class StatsServiceImpl implements StatsService {
         if (endpointHit == null) {
             log.warn("Получен null");
             throw new ValidationException("Передан null объект");
-        }
-        if (endpointHit.getIp() != null) {
-            String regex = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(endpointHit.getIp());
-            if (!matcher.matches()) {
-                log.warn("Передан некорректный ip-адрес {}", endpointHit.getIp());
-                throw new IllegalArgumentException("Передан некорректный ip-адрес");
-            }
         }
     }
 }
