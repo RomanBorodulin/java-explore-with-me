@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.client.StatsClient;
+import ru.practicum.comment.mapper.CommentMapper;
+import ru.practicum.comment.model.Comment;
+import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventRequestStatusUpdateRequestDto;
@@ -39,6 +42,7 @@ import ru.practicum.utility.PageUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -60,6 +64,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final RequestRepository requestRepository;
     private final StatsClient statsClient;
+    private final CommentRepository commentRepository;
 
     @Override
     public List<EventShortDto> getEventsByUserId(Long userId, int from, int size) {
@@ -83,7 +88,7 @@ public class EventServiceImpl implements EventService {
         event.setState(EventState.PENDING);
         event.setCreatedOn(LocalDateTime.now());
         log.info("POST /users/{}/events", userId);
-        return EventMapper.toEventFullDto(eventRepository.save(event), 0L);
+        return setComment(EventMapper.toEventFullDto(eventRepository.save(event), 0L));
     }
 
     @Override
@@ -91,7 +96,7 @@ public class EventServiceImpl implements EventService {
         getUser(userId, userRepository);
         Event event = getEvent(eventId, eventRepository);
         log.info("GET /users/{}/events/{}", userId, eventId);
-        return EventMapper.toEventFullDto(event, getHits(eventId, statsClient));
+        return setComment(EventMapper.toEventFullDto(event, getHits(eventId, statsClient)));
     }
 
     @Override
@@ -111,7 +116,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         log.info("PATCH /users/{}/events/{}", userId, eventId);
-        return EventMapper.toEventFullDto(eventRepository.save(event), 0L);
+        return setComment(EventMapper.toEventFullDto(eventRepository.save(event), 0L));
     }
 
 
@@ -172,7 +177,8 @@ public class EventServiceImpl implements EventService {
         log.info("users={},states={},categories={},rangeStart={},rangeEnd={}", users, states, categories, rangeStart, rangeEnd);
         log.info("GET /admin/events");
         return eventRepository.findEventsByAdmin(users, states, categories, rangeStart, rangeEnd, pageable).stream()
-                .map(e -> EventMapper.toEventFullDto(e, getHits(e.getId(), statsClient))).collect(Collectors.toList());
+                .map(e -> setComment(EventMapper.toEventFullDto(e, getHits(e.getId(), statsClient))))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -197,7 +203,7 @@ public class EventServiceImpl implements EventService {
         }
         updateEvent(eventDto, event, LocalDateTime.now().plusHours(1));
         log.info("PATCH /admin/events/{}", eventId);
-        return EventMapper.toEventFullDto(eventRepository.save(event), 0L);
+        return setComment(EventMapper.toEventFullDto(eventRepository.save(event), 0L));
     }
 
     @Override
@@ -233,7 +239,7 @@ public class EventServiceImpl implements EventService {
         if (!event.getState().equals(EventState.PUBLISHED))
             throw new DataNotFoundException("Event " + id + " is not published yet!");
         log.info("GET /events/{}", id);
-        return EventMapper.toEventFullDto(event, getHits(id, statsClient));
+        return setComment(EventMapper.toEventFullDto(event, getHits(id, statsClient)));
     }
 
     private List<EventShortDto> getEventShortDtos(String text, List<Long> categories, Boolean paid,
@@ -293,5 +299,11 @@ public class EventServiceImpl implements EventService {
         if (start.isAfter(end) || start.isEqual(end)) {
             throw new ValidationException("Дата окончания не может быть раньше или равна дате начала");
         }
+    }
+
+    private EventFullDto setComment(EventFullDto eventDto) {
+        List<Comment> comments = commentRepository.findAllByEventId(eventDto.getId()).orElse(Collections.emptyList());
+        eventDto.setComments(CommentMapper.toCommentDtoList(comments));
+        return eventDto;
     }
 }

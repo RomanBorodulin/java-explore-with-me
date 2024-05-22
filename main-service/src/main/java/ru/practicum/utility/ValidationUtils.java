@@ -2,6 +2,8 @@ package ru.practicum.utility;
 
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.comment.model.Comment;
+import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.compilation.repository.CompilationRepository;
 import ru.practicum.event.model.Event;
@@ -39,5 +41,10 @@ public final class ValidationUtils {
     public static Compilation getCompilation(Long compId, CompilationRepository compilationRepository) {
         return compilationRepository.findById(compId)
                 .orElseThrow(() -> new DataNotFoundException("Compilation with id=" + compId + " was not found"));
+    }
+
+    public static Comment getComment(Long comId, CommentRepository commentRepository) {
+        return commentRepository.findById(comId)
+                .orElseThrow(() -> new DataNotFoundException("Comment with id=" + comId + " was not found"));
     }
 }
